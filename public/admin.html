@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Web Notification Service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: auto;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: white;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #f093fb;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #f093fb;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .target-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .target-option {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f093fb;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e1e1e1;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f093fb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .target-options {
+                flex-direction: column;
+            }
+            
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <span>🛠️</span>
+            Admin Panel
+            <a href="/" class="back-btn">← Back to Home</a>
+        </h1>
+    </div>
+
+    <div class="container">
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-subscriptions">0</div>
+                <div class="stat-label">Total Subscriptions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-messages">0</div>
+                <div class="stat-label">Messages Sent</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-replies">0</div>
+                <div class="stat-label">Replies Received</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="active-groups">0</div>
+                <div class="stat-label">Active Groups</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('send')">Send Notification</button>
+            <button class="tab" onclick="switchTab('subscriptions')">Subscriptions</button>
+            <button class="tab" onclick="switchTab('messages')">Message History</button>
+            <button class="tab" onclick="switchTab('replies')">Replies</button>
+        </div>
+
+        <!-- Send Notification Tab -->
+        <div id="send-tab" class="tab-content active">
+            <div class="card">
+                <h2>Send Push Notification</h2>
+                <form id="notification-form">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="title">Title *</label>
+                            <input type="text" id="title" required placeholder="Notification title">
+                        </div>
+                        <div class="form-group">
+                            <label for="icon">Icon URL</label>
+                            <input type="url" id="icon" placeholder="https://example.com/icon.png">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="body">Message *</label>
+                        <textarea id="body" rows="4" required placeholder="Notification message"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Target Audience *</label>
+                        <div class="target-options">
+                            <div class="target-option">
+                                <select id="target-type" onchange="updateTargetOptions()">
+                                    <option value="all">All Subscribers</option>
+                                    <option value="individual">Individual</option>
+                                    <option value="group">Group</option>
+                                </select>
+                            </div>
+                            <div class="target-option">
+                                <select id="target-value" disabled>
+                                    <option value="">Select target...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Send Notification</button>
+                </form>
+                
+                <div id="send-result"></div>
+            </div>
+        </div>
+
+        <!-- Subscriptions Tab -->
+        <div id="subscriptions-tab" class="tab-content">
+            <div class="card">
+                <h2>Active Subscriptions</h2>
+                <div class="loading" id="subscriptions-loading">
+                    <div class="spinner"></div>
+                    <p>Loading subscriptions...</p>
+                </div>
+                <table class="table" id="subscriptions-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User Agent</th>
+                            <th>Groups</th>
+                            <th>Created</th>
+                            <th>Last Active</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subscriptions-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Messages Tab -->
+        <div id="messages-tab" class="tab-content">
+            <div class="card">
+                <h2>Message History</h2>
+                <div class="loading" id="messages-loading">
+                    <div class="spinner"></div>
+                    <p>Loading messages...</p>
+                </div>
+                <table class="table" id="messages-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Target</th>
+                            <th>Recipients</th>
+                            <th>Sent</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messages-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Replies Tab -->
+        <div id="replies-tab" class="tab-content">
+            <div class="card">
+                <h2>Client Replies</h2>
+                <div class="loading" id="replies-loading">
+                    <div class="spinner"></div>
+                    <p>Loading replies...</p>
+                </div>
+                <table class="table" id="replies-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Original Message</th>
+                            <th>Reply</th>
+                            <th>From</th>
+                            <th>Received</th>
+                        </tr>
+                    </thead>
+                    <tbody id="replies-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let subscriptions = [];
+        let groups = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadSubscriptions();
+            loadGroups();
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            // Load data for the tab
+            if (tabName === 'subscriptions') loadSubscriptions();
+            if (tabName === 'messages') loadMessages();
+            if (tabName === 'replies') loadReplies();
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const [subscriptionsRes, messagesRes, repliesRes, groupsRes] = await Promise.all([
+                    fetch('/api/subscriptions'),
+                    fetch('/api/messages'),
+                    fetch('/api/replies'),
+                    fetch('/api/groups')
+                ]);
+                
+                const subscriptionsData = await subscriptionsRes.json();
+                const messagesData = await messagesRes.json();
+                const repliesData = await repliesRes.json();
+                const groupsData = await groupsRes.json();
+                
+                document.getElementById('total-subscriptions').textContent = subscriptionsData.length;
+                document.getElementById('total-messages').textContent = messagesData.length;
+                document.getElementById('total-replies').textContent = repliesData.length;
+                document.getElementById('active-groups').textContent = groupsData.length;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load subscriptions
+        async function loadSubscriptions() {
+            const loading = document.getElementById('subscriptions-loading');
+            const table = document.getElementById('subscriptions-table');
+            const tbody = document.getElementById('subscriptions-body');
+            
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/subscriptions');
+                subscriptions = await response.json();
+                
+                tbody.innerHTML = subscriptions.map(sub => `
+                    <tr>
+                        <td>${sub.id}</td>
+                        <td>${sub.user_agent || 'Unknown'}</td>
+                        <td>${sub.groups.length > 0 ? sub.groups.join(', ') : 'None'}</td>
+                        <td>${new Date(sub.created_at).toLocaleDateString()}</td>
+                        <td>${new Date(sub.last_active).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+                
+                loading.style.display = 'none';
+                table.style.display = 'table';
+            } catch (error) {
+                console.error('Error loading subscriptions:', error);
+                loading.innerHTML = '<p>Error loading subscriptions</p>';
+            }
+        }
+
+        // Load groups
+        async function loadGroups() {
+            try {
+                const response = await fetch('/api/groups');
+                groups = await response.json();
+            } catch (error) {
+                console.error('Error loading groups:', error);
+            }
+        }
+
+        // Update target options
+        function updateTargetOptions() {
+            const targetType = document.getElementById('target-type').value;
+            const targetValue = document.getElementById('target-value');
+            
+            targetValue.innerHTML = '<option value="">Select target...</option>';
+            
+            if (targetType === 'all') {
+                targetValue.disabled = true;
+            } else if (targetType === 'individual') {
+                targetValue.disabled = false;
+                subscriptions.forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub.id;
+                    option.textContent = `ID: ${sub.id} (${sub.user_agent || 'Unknown'})`;
+                    targetValue.appendChild(option);
+                });
+            } else if (targetType === 'group') {
+                targetValue.disabled = false;
+                groups.forEach(group => {
+                    const option = document.createElement('option');
+                    option.value = group;
+                    option.textContent = group;
+                    targetValue.appendChild(option);
+                });
+            }
+        }
+
+        // Send notification
+        document.getElementById('notification-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const body = document.getElementById('body').value;
+            const icon = document.getElementById('icon').value;
+            const targetType = document.getElementById('target-type').value;
+            const targetValue = document.getElementById('target-value').value;
+            
+            const resultDiv = document.getElementById('send-result');
+            resultDiv.innerHTML = '';
+            
+            if (targetType !== 'all' && !targetValue) {
+                resultDiv.innerHTML = '<div class="alert error">Please select a target</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/send-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        body,
+                        icon,
+                        targetType,
+                        targetValue
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert success">
+                            Notification sent successfully!<br>
+                            Delivered to: ${result.sent} recipients<br>
+                            Failed: ${result.failed} recipients
+                        </div>
+                    `;
+                    document.getElementById('notification-form').reset();
+                    loadStats();
+                } else {
+                    resultDiv.innerHTML = `<div class="alert error">Error: ${result.error}</div>`;
+                }
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                resultDiv.innerHTML = `<div class="alert error">Error sending notification</div>`;
+            }
+        });
+
+        // Load messages
+        async function loadMessages() {
+            const loading = document.getElementById('messages-loading');
+            const table = document.getElementById('messages-table');
+            const tbody = document.getElementById('messages-body');
+            
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/messages');
+                const messages = await response.json();
+                
+                tbody.innerHTML = messages.map(msg => `
+                    <tr>
+                        <td>${msg.id}</td>
+                        <td>${msg.title}</td>
+                        <td>${msg.target_type === 'all' ? 'All' : 
+                             msg.target_type === 'group' ? `Group: ${msg.target_value}` :
+                             `Individual: ${msg.target_value}`}</td>
+                        <td>${msg.recipients_count}</td>
+                        <td>${new Date(msg.sent_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+                
+                loading.style.display = 'none';
+                table.style.display = 'table';
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                loading.innerHTML = '<p>Error loading messages</p>';
+            }
+        }
+
+        // Load replies
+        async function loadReplies() {
+            const loading = document.getElementById('replies-loading');
+            const table = document.getElementById('replies-table');
+            const tbody = document.getElementById('replies-body');
+            
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/replies');
+                const replies = await response.json();
+                
+                tbody.innerHTML = replies.map(reply => `
+                    <tr>
+                        <td>${reply.original_title}</td>
+                        <td>${reply.reply_text}</td>
+                        <td>${reply.user_agent || 'Unknown'}</td>
+                        <td>${new Date(reply.created_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+                
+                loading.style.display = 'none';
+                table.style.display = 'table';
+            } catch (error) {
+                console.error('Error loading replies:', error);
+                loading.innerHTML = '<p>Error loading replies</p>';
+            }
+        }
+    </script>
+</body>
+</html>
