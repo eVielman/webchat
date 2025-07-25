@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Demo - Web Notification Service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: auto;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+        
+        .status-indicator.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-indicator.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-indicator.pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn.secondary {
+            background: #6c757d;
+        }
+        
+        .btn.danger {
+            background: linear-gradient(45deg, #f5576c, #f093fb);
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .groups-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .group-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .notification-history {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e1e1e1;
+            margin-bottom: 1rem;
+        }
+        
+        .notification-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .notification-time {
+            font-size: 0.875rem;
+            color: #666;
+        }
+        
+        .notification-body {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .reply-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .reply-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+        
+        .reply-input {
+            flex: 1;
+        }
+        
+        .reply-input textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .reply-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <span>📱</span>
+            Client Demo
+            <a href="/" class="back-btn">← Back to Home</a>
+        </h1>
+    </div>
+
+    <div class="container">
+        <!-- Status Card -->
+        <div class="card">
+            <h2>Notification Status</h2>
+            <div id="status-indicator" class="status-indicator disconnected">
+                <span id="status-icon">❌</span>
+                <span id="status-text">Not subscribed to notifications</span>
+            </div>
+            
+            <div id="subscription-controls">
+                <div class="form-group">
+                    <label for="groups-input">Join Groups (comma-separated)</label>
+                    <input type="text" id="groups-input" placeholder="beta, premium, developers" 
+                           title="Enter group names separated by commas">
+                    <small style="color: #666;">Groups help organize subscribers for targeted notifications</small>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button id="subscribe-btn" class="btn">Enable Notifications</button>
+                    <button id="unsubscribe-btn" class="btn danger" style="display: none;">Disable Notifications</button>
+                </div>
+            </div>
+            
+            <div id="subscription-info" style="display: none;">
+                <h3>Subscription Details</h3>
+                <p><strong>Subscription ID:</strong> <span id="subscription-id"></span></p>
+                <p><strong>Groups:</strong></p>
+                <div id="current-groups" class="groups-container"></div>
+            </div>
+            
+            <div id="subscription-result"></div>
+        </div>
+
+        <!-- Test Notification Card -->
+        <div class="card">
+            <h2>Test Notifications</h2>
+            <p style="color: #666; margin-bottom: 1rem;">
+                These buttons will trigger test notifications if you're subscribed.
+            </p>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button id="test-notification-btn" class="btn secondary">Test Simple Notification</button>
+                <button id="test-rich-notification-btn" class="btn secondary">Test Rich Notification</button>
+            </div>
+        </div>
+
+        <!-- Notification History Card -->
+        <div class="card">
+            <h2>Recent Notifications</h2>
+            <div id="notification-history" class="notification-history">
+                <div style="text-align: center; color: #666; padding: 2rem;">
+                    No notifications received yet
+                </div>
+            </div>
+            <button id="clear-history-btn" class="btn secondary" style="margin-top: 1rem;">Clear History</button>
+        </div>
+
+        <!-- Browser Support Card -->
+        <div class="card">
+            <h2>Browser Support</h2>
+            <div id="browser-support">
+                <p><strong>Service Worker:</strong> <span id="sw-support"></span></p>
+                <p><strong>Push Notifications:</strong> <span id="push-support"></span></p>
+                <p><strong>Notification API:</strong> <span id="notification-support"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let subscription = null;
+        let notificationHistory = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkBrowserSupport();
+            loadNotificationHistory();
+            initializeServiceWorker();
+        });
+
+        // Check browser support
+        function checkBrowserSupport() {
+            const swSupport = 'serviceWorker' in navigator;
+            const pushSupport = 'PushManager' in window;
+            const notificationSupport = 'Notification' in window;
+            
+            document.getElementById('sw-support').innerHTML = swSupport ? 
+                '<span style="color: green;">✅ Supported</span>' : 
+                '<span style="color: red;">❌ Not Supported</span>';
+                
+            document.getElementById('push-support').innerHTML = pushSupport ? 
+                '<span style="color: green;">✅ Supported</span>' : 
+                '<span style="color: red;">❌ Not Supported</span>';
+                
+            document.getElementById('notification-support').innerHTML = notificationSupport ? 
+                '<span style="color: green;">✅ Supported</span>' : 
+                '<span style="color: red;">❌ Not Supported</span>';
+        }
+
+        // Initialize service worker
+        async function initializeServiceWorker() {
+            if (!('serviceWorker' in navigator)) {
+                showResult('error', 'Service workers are not supported in this browser');
+                return;
+            }
+
+            try {
+                const registration = await navigator.serviceWorker.register('/service-worker.js');
+                console.log('Service Worker registered:', registration);
+                
+                // Check if already subscribed
+                const existingSubscription = await registration.pushManager.getSubscription();
+                if (existingSubscription) {
+                    subscription = existingSubscription;
+                    updateStatus('connected', 'Subscribed to notifications');
+                    loadSubscriptionInfo();
+                }
+            } catch (error) {
+                console.error('Service Worker registration failed:', error);
+                showResult('error', 'Failed to register service worker');
+            }
+        }
+
+        // Subscribe to notifications
+        async function subscribeToNotifications() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    showResult('error', 'Notification permission denied');
+                    return;
+                }
+
+                updateStatus('pending', 'Setting up subscription...');
+
+                const registration = await navigator.serviceWorker.ready;
+                
+                // Get VAPID public key
+                const vapidResponse = await fetch('/api/vapid-public-key');
+                const { publicKey } = await vapidResponse.json();
+
+                const pushSubscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey)
+                });
+
+                // Get groups
+                const groupsInput = document.getElementById('groups-input').value;
+                const groups = groupsInput ? groupsInput.split(',').map(g => g.trim()).filter(g => g) : [];
+
+                // Send subscription to server
+                const response = await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        endpoint: pushSubscription.endpoint,
+                        keys: {
+                            p256dh: arrayBufferToBase64(pushSubscription.getKey('p256dh')),
+                            auth: arrayBufferToBase64(pushSubscription.getKey('auth'))
+                        },
+                        userAgent: navigator.userAgent,
+                        groups
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    subscription = pushSubscription;
+                    updateStatus('connected', 'Successfully subscribed to notifications');
+                    showResult('success', 'Subscription successful!');
+                    loadSubscriptionInfo();
+                } else {
+                    updateStatus('disconnected', 'Subscription failed');
+                    showResult('error', result.error || 'Subscription failed');
+                }
+            } catch (error) {
+                console.error('Subscription error:', error);
+                updateStatus('disconnected', 'Subscription failed');
+                showResult('error', 'Failed to subscribe: ' + error.message);
+            }
+        }
+
+        // Unsubscribe from notifications
+        async function unsubscribeFromNotifications() {
+            try {
+                if (subscription) {
+                    await subscription.unsubscribe();
+                    
+                    // Notify server
+                    await fetch('/api/unsubscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ endpoint: subscription.endpoint })
+                    });
+                }
+                
+                subscription = null;
+                updateStatus('disconnected', 'Not subscribed to notifications');
+                showResult('success', 'Successfully unsubscribed');
+                document.getElementById('subscription-info').style.display = 'none';
+            } catch (error) {
+                console.error('Unsubscribe error:', error);
+                showResult('error', 'Failed to unsubscribe: ' + error.message);
+            }
+        }
+
+        // Update status indicator
+        function updateStatus(status, message) {
+            const indicator = document.getElementById('status-indicator');
+            const icon = document.getElementById('status-icon');
+            const text = document.getElementById('status-text');
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            const unsubscribeBtn = document.getElementById('unsubscribe-btn');
+            
+            indicator.className = `status-indicator ${status}`;
+            text.textContent = message;
+            
+            switch (status) {
+                case 'connected':
+                    icon.textContent = '✅';
+                    subscribeBtn.style.display = 'none';
+                    unsubscribeBtn.style.display = 'inline-block';
+                    break;
+                case 'disconnected':
+                    icon.textContent = '❌';
+                    subscribeBtn.style.display = 'inline-block';
+                    unsubscribeBtn.style.display = 'none';
+                    break;
+                case 'pending':
+                    icon.textContent = '⏳';
+                    subscribeBtn.style.display = 'none';
+                    unsubscribeBtn.style.display = 'none';
+                    break;
+            }
+        }
+
+        // Load subscription info
+        function loadSubscriptionInfo() {
+            const groupsInput = document.getElementById('groups-input').value;
+            const groups = groupsInput ? groupsInput.split(',').map(g => g.trim()).filter(g => g) : [];
+            
+            document.getElementById('subscription-id').textContent = 'Active';
+            
+            const groupsContainer = document.getElementById('current-groups');
+            if (groups.length > 0) {
+                groupsContainer.innerHTML = groups.map(group => 
+                    `<span class="group-tag">${group}</span>`
+                ).join('');
+            } else {
+                groupsContainer.innerHTML = '<span style="color: #666;">No groups</span>';
+            }
+            
+            document.getElementById('subscription-info').style.display = 'block';
+        }
+
+        // Show result message
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('subscription-result');
+            resultDiv.innerHTML = `<div class="alert ${type}">${message}</div>`;
+            setTimeout(() => {
+                resultDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Test notifications
+        function sendTestNotification() {
+            if (!subscription) {
+                showResult('error', 'Not subscribed to notifications');
+                return;
+            }
+            
+            new Notification('Test Notification', {
+                body: 'This is a test notification from the client',
+                icon: '/icon-192.png',
+                tag: 'test'
+            });
+            
+            addToHistory({
+                title: 'Test Notification',
+                body: 'This is a test notification from the client',
+                timestamp: new Date().toISOString(),
+                type: 'test'
+            });
+        }
+
+        function sendTestRichNotification() {
+            if (!subscription) {
+                showResult('error', 'Not subscribed to notifications');
+                return;
+            }
+            
+            new Notification('Rich Test Notification', {
+                body: 'This notification has an icon and can be replied to',
+                icon: '/icon-192.png',
+                badge: '/badge.png',
+                tag: 'rich-test',
+                actions: [
+                    { action: 'reply', title: 'Reply' },
+                    { action: 'dismiss', title: 'Dismiss' }
+                ]
+            });
+            
+            addToHistory({
+                title: 'Rich Test Notification',
+                body: 'This notification has an icon and can be replied to',
+                timestamp: new Date().toISOString(),
+                type: 'test'
+            });
+        }
+
+        // Add notification to history
+        function addToHistory(notification) {
+            notificationHistory.unshift(notification);
+            if (notificationHistory.length > 50) {
+                notificationHistory = notificationHistory.slice(0, 50);
+            }
+            localStorage.setItem('notificationHistory', JSON.stringify(notificationHistory));
+            loadNotificationHistory();
+        }
+
+        // Load notification history
+        function loadNotificationHistory() {
+            const historyContainer = document.getElementById('notification-history');
+            
+            if (notificationHistory.length === 0) {
+                historyContainer.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 2rem;">
+                        No notifications received yet
+                    </div>
+                `;
+                return;
+            }
+            
+            historyContainer.innerHTML = notificationHistory.map((notification, index) => `
+                <div class="notification-item">
+                    <div class="notification-header">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-time">${new Date(notification.timestamp).toLocaleString()}</div>
+                    </div>
+                    <div class="notification-body">${notification.body}</div>
+                    ${notification.messageId ? `
+                        <div class="reply-section">
+                            <div class="reply-form">
+                                <div class="reply-input">
+                                    <textarea placeholder="Type your reply..." id="reply-${index}"></textarea>
+                                </div>
+                                <button class="btn" onclick="sendReply(${notification.messageId}, ${index})">Send Reply</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Send reply
+        async function sendReply(messageId, index) {
+            const replyText = document.getElementById(`reply-${index}`).value.trim();
+            if (!replyText) return;
+            
+            if (!subscription) {
+                showResult('error', 'Not subscribed to notifications');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messageId,
+                        replyText,
+                        subscriptionEndpoint: subscription.endpoint
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById(`reply-${index}`).value = '';
+                    showResult('success', 'Reply sent successfully!');
+                } else {
+                    showResult('error', result.error || 'Failed to send reply');
+                }
+            } catch (error) {
+                console.error('Reply error:', error);
+                showResult('error', 'Failed to send reply');
+            }
+        }
+
+        // Clear notification history
+        function clearNotificationHistory() {
+            notificationHistory = [];
+            localStorage.removeItem('notificationHistory');
+            loadNotificationHistory();
+            showResult('success', 'Notification history cleared');
+        }
+
+        // Utility functions
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+            
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function arrayBufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        // Event listeners
+        document.getElementById('subscribe-btn').addEventListener('click', subscribeToNotifications);
+        document.getElementById('unsubscribe-btn').addEventListener('click', unsubscribeFromNotifications);
+        document.getElementById('test-notification-btn').addEventListener('click', sendTestNotification);
+        document.getElementById('test-rich-notification-btn').addEventListener('click', sendTestRichNotification);
+        document.getElementById('clear-history-btn').addEventListener('click', clearNotificationHistory);
+
+        // Listen for messages from service worker
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'notification-received') {
+                addToHistory(event.data.notification);
+            }
+        });
+    </script>
+</body>
+</html>
